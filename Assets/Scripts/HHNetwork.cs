@@ -23,10 +23,12 @@ public class HHNetwork : MonoBehaviour {
 
 	// Timer
 	public GameObject TimerLabel;
-	private float timerMax = 11.0f;
-	private float timer = 0.0f;
 	public ParticleSystem TimerParticle;
 	public ParticleSystem TimerParticleEnd;
+	private bool gameStarted = false;
+	private float timerMax = 11.0f;
+	private float timer = 0.0f;
+
 	
 	private int minPlayers = 1;
 	private string[] playerIDs;
@@ -67,8 +69,10 @@ public class HHNetwork : MonoBehaviour {
     }
     
     void UpdateTimer() {
+    
     	if( GameReady() )
     	{
+    		gameStarted = true;
     		TimerLabel.SetActive( true );
     		TimerParticle.gameObject.SetActive( true );
 	    	tk2dTextMesh timerText = TimerLabel.GetComponent<tk2dTextMesh>();
@@ -90,6 +94,7 @@ public class HHNetwork : MonoBehaviour {
 			TimerLabel.SetActive( false );
 			TimerParticle.gameObject.SetActive( false );
 		}
+		
     }
 	
 	// Update is called once per frame
@@ -108,6 +113,7 @@ public class HHNetwork : MonoBehaviour {
 				
 			// Set instruction text
 			tk2dTextMesh instruction = player.transform.Find( "Instruction" ).GetComponent<tk2dTextMesh>();
+			player.transform.Find( "Instruction" ).gameObject.SetActive( false );
 			instruction.text = "TEST";
 			instruction.Commit();
 					
@@ -189,15 +195,18 @@ public class HHNetwork : MonoBehaviour {
 			}
 			else if( playerIDs[i] == "" )
 			{
-				playerOrientations[i] = orientation;
-				playerLastOrientations[i] = orientation;
-				playerIDs[i] = uniqueIdentifier;
-				playerGameObjects[i].SetActive(true);
-				playerAppearParticles[i].Play();
-				
-				GameObject player = playerGameObjects[i];
-				MeshRenderer renderer = player.transform.Find( "AnimatedSprite" ).GetComponent<MeshRenderer>();
-				renderer.material = materialNormal;
+				if( !gameStarted )
+				{
+					playerOrientations[i] = orientation;
+					playerLastOrientations[i] = orientation;
+					playerIDs[i] = uniqueIdentifier;
+					playerGameObjects[i].SetActive(true);
+					playerAppearParticles[i].Play();
+					
+					GameObject player = playerGameObjects[i];
+					MeshRenderer renderer = player.transform.Find( "AnimatedSprite" ).GetComponent<MeshRenderer>();
+					renderer.material = materialNormal;
+				}
 				return;
 			}
 		}		    	

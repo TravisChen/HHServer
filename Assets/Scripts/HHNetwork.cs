@@ -4,6 +4,7 @@ using System.Collections;
 public class HHNetwork : MonoBehaviour {
 
 	public Camera camera;
+	public HHAudioManager audio;
 
 	public GameObject Player1;
 	public GameObject Player2;
@@ -23,19 +24,30 @@ public class HHNetwork : MonoBehaviour {
 	public Material materialNormal;
 	public Material materialDark;
 
+	public GameObject getReadyMenu;
+	public GameObject winMenu;
+	public GameObject restartMenu;
+
 	// Timer
 	public GameObject TimerLabel;
 	public ParticleSystem TimerParticle;
 	public ParticleSystem TimerParticleEnd;
 	private bool gameStarted = false;
+	private bool gameOver = false;
 	private float timerMax = 11.0f;
 	private float timer = 0.0f;
-
+	private float startTimer = 3.0f;
+	private float restartTimer = 5.0f;
+	private float restartCountdown = 11.0f;
 	
-	private int minPlayers = 1;
+	private int minPlayers = 2;
 	private string[] playerIDs;
+	private string[] availableOrientations;
 	private string[] playerOrientations;
-	private string[] playerLastOrientations;
+	private string[] playerGoalOrientations;
+	private bool[] playerGoalCompleted;
+	private bool[] playerFailed;
+
 	private ParticleSystem[] playerParticles;
 	private ParticleSystem[] playerAppearParticles;
 	private GameObject[] playerGameObjects;
@@ -43,8 +55,13 @@ public class HHNetwork : MonoBehaviour {
 	void Start()
 	{
 		playerIDs = new string[] { "", "", "", "" };
+		
+		availableOrientations = new string[] { "FaceUp", "FaceDown", "Portrait", "PortraitUpsideDown", "LandscapeLeft", "LandscapeRight" };
 		playerOrientations = new string[] { "Portrait", "Portrait", "Portrait",  "Portrait" };
-		playerLastOrientations = new string[] { "Portrait", "Portrait", "Portrait", "Portrait" };
+		playerGoalOrientations = new string[] { "Portrait", "Portrait", "Portrait",  "Portrait" };
+		playerGoalCompleted = new bool[] { false, false, false, false };
+		playerFailed = new bool[] { false, false, false, false };
+		
 		playerGameObjects = new GameObject[] { Player1, Player2, Player3, Player4 };
 		playerParticles = new ParticleSystem[] { Player1SuccessParticle, Player2SuccessParticle, Player3SuccessParticle, Player4SuccessParticle };
 		playerAppearParticles = new ParticleSystem[] { Player1AppearParticle, Player2AppearParticle, Player3AppearParticle, Player4AppearParticle };
@@ -56,9 +73,40 @@ public class HHNetwork : MonoBehaviour {
 			renderer.material = materialDark;
 		}
 		
+		// Disable menus
+		getReadyMenu.SetActive( false );
+		winMenu.SetActive( false );
+		restartMenu.SetActive( false );
+		
 		// Timer
 		timer = timerMax;
 		TimerParticle.Play();
+	}
+	
+	void ResetGame()
+	{
+		playerIDs = new string[] { "", "", "", "" };
+		playerOrientations = new string[] { "Portrait", "Portrait", "Portrait",  "Portrait" };
+		playerGoalOrientations = new string[] { "Portrait", "Portrait", "Portrait",  "Portrait" };
+		playerGoalCompleted = new bool[] { false, false, false, false };
+		playerFailed = new bool[] { false, false, false, false };
+		
+		getReadyMenu.SetActive( false );
+		winMenu.SetActive( false );
+		restartMenu.SetActive( false );
+		
+		gameStarted = false;
+		gameOver = false;
+		timer = timerMax;
+		startTimer = 3.0f;
+		restartTimer = 5.0f;
+		restartCountdown = 11.0f;
+
+		for( int i = 0; i < playerGameObjects.Length; i++ )
+		{
+			playerFailed[i] = false;
+			playerGameObjects[i].SetActive( true );
+		}
 	}
 	
 	void Awake()
@@ -72,31 +120,137 @@ public class HHNetwork : MonoBehaviour {
     
     void UpdateTimer() {
     
-    	if( GameReady() )
+    	if( GameReady() && !gameOver )
     	{
-    		gameStarted = true;
-    		TimerLabel.SetActive( true );
-    		TimerParticle.gameObject.SetActive( true );
-	    	tk2dTextMesh timerText = TimerLabel.GetComponent<tk2dTextMesh>();
-			if( timerText )
-			{
-				timer -= Time.deltaTime;
-				timerText.text = "" + (int)timer + "";
-				timerText.Commit();
-				
-				if( timer <= 1 )
+    		if( startTimer <= 0 )
+    		{
+    			getReadyMenu.SetActive( false );
+    			
+	    		// First start
+	    		if( !gameStarted )
+	    		{
+	    		    TimerLabel.SetActive( true );
+	    			TimerParticle.gameObject.SetActive( true );
+	    			SetGoalOrientations();
+	    			gameStarted = true;
+	    		}
+	
+		    	tk2dTextMesh timerText = TimerLabel.GetComponent<tk2dTextMesh>();
+				if( timerText )
 				{
-					TimerParticleEnd.Play();
-					timer = timerMax;
+					timer -= Time.deltaTime;
+					timerText.text = "" + (int)timer + "";
+					timerText.Commit();
+					
+					if( timer <= 1 )
+					{
+						// END ROUND, NEXT ROUND
+						SetGoalOrientations();
+						TimerParticleEnd.Play();
+						timer = timerMax;
+						
+						// Reset all players
+						for( int i = 0; i < playerGoalCompleted.Length; i++ )
+						{
+							if( !playerGoalCompleted[i] )
+							{
+								playerFailed[i] = true;
+								playerGameObjects[i].SetActive( false );
+							}
+							CheckGameOver();
+							playerGoalCompleted[i] = false;
+							playerParticles[i].Stop();
+						}
+					}
 				}
+			}
+			else
+			{
+				getReadyMenu.SetActive( true );
+				audio.randomSong();
+				startTimer -= Time.deltaTime;
 			}
 		}
 		else
 		{
 			TimerLabel.SetActive( false );
 			TimerParticle.gameObject.SetActive( false );
+			
+			if( gameOver )
+			{
+				CheckRestart();
+			}
 		}
 		
+    }
+    
+    void CheckRestart() {
+
+		restartTimer -= Time.deltaTime;
+		if( restartTimer <= 0 )
+		{
+			winMenu.SetActive( false );
+			restartMenu.SetActive( true );
+			
+			tk2dTextMesh restartTimerLabel = restartMenu.transform.Find( "RestartTimer" ).GetComponent<tk2dTextMesh>();
+			restartTimerLabel.text = "" + (int)restartCountdown + "";
+			restartTimerLabel.Commit();
+			
+			restartCountdown -= Time.deltaTime;
+			
+			if( restartCountdown <= 0 )
+			{
+				ResetGame();
+			}
+		}
+    	
+    }
+    
+    void CheckGameOver() {
+    
+    	int numAlive = 0;
+    	int winner = 0;   	
+    	for( int i = 0; i < playerFailed.Length; i++ )
+		{
+			if( !playerFailed[i] )
+			{
+				numAlive++;
+				winner = i;
+			}
+		}
+		
+		if( numAlive <= 1 )
+		{
+			winMenu.SetActive( true );
+			gameOver = true;
+			
+			tk2dTextMesh playerNumLabel = winMenu.transform.Find( "PlayerNum" ).GetComponent<tk2dTextMesh>();
+			tk2dTextMesh winsLabel = winMenu.transform.Find( "WINS" ).GetComponent<tk2dTextMesh>();
+			if( numAlive == 0 )
+			{
+				playerNumLabel.text = "0";	
+				winsLabel.text = "TIE.";	
+			}
+			else
+			{
+				playerNumLabel.text = "" + ( winner + 1 ) + "";
+			}
+			playerNumLabel.Commit();
+			winsLabel.Commit();
+			
+			restartTimer = 5.0f;
+			restartCountdown = 11.0f;
+		}
+    }
+    
+    void SetGoalOrientations() {
+    
+    	for( int i = 0; i < playerIDs.Length; i++ )
+		{
+			int randomOrientation = Random.Range( 0, availableOrientations.Length - 1 );
+			playerGoalOrientations[i] = availableOrientations[randomOrientation];
+		}
+			
     }
 	
 	void UpdateEffect() {
@@ -114,6 +268,11 @@ public class HHNetwork : MonoBehaviour {
 		// Effect
 		UpdateEffect();
 		
+		if( !gameStarted || gameOver )
+		{
+			return;
+		}
+		
 		for( int i = 0; i < playerIDs.Length; i++ )
 		{	
 			// Player
@@ -121,57 +280,55 @@ public class HHNetwork : MonoBehaviour {
 			string currOrientation = playerOrientations[i];
 			tk2dSprite sprite = player.transform.Find( "AnimatedSprite" ).GetComponent<tk2dSprite>();
 			tk2dSpriteAnimator animator = player.transform.Find( "AnimatedSprite" ).GetComponent<tk2dSpriteAnimator>();
-				
-			// Set instruction text
-			tk2dTextMesh instruction = player.transform.Find( "Instruction" ).GetComponent<tk2dTextMesh>();
-			player.transform.Find( "Instruction" ).gameObject.SetActive( false );
-			instruction.text = "TEST";
-			instruction.Commit();
+			
 					
-			if( playerIDs[i] != "" )
-			{		
-
+//			// Set instruction text
+//			tk2dTextMesh instruction = player.transform.Find( "Instruction" ).GetComponent<tk2dTextMesh>();
+//			instruction.text = "";
+//			instruction.Commit();
+					
+			if( playerIDs[i] != "" && !playerFailed[i] )
+			{
 				sprite.FlipX = false;
 				
-				if( currOrientation == DeviceOrientation.FaceUp.ToString() )
+				if( playerGoalOrientations[i] == "FaceUp" )
 				{
 					animator.Play( "FaceUp" );
 					//player.transform.localEulerAngles = new Vector3( 0, 0, 0 );
 				}
-				else if( currOrientation == DeviceOrientation.FaceDown.ToString() )
+				else if( playerGoalOrientations[i] == "FaceDown" )
 				{
 					animator.Play( "FaceDown" );
 					//player.transform.localEulerAngles = new Vector3( 0, -180, -180 );
 				}
-				else if ( currOrientation== DeviceOrientation.Portrait.ToString() )
+				else if ( playerGoalOrientations[i] == "Portrait" )
 				{
 					animator.Play( "Portrait" );	
 					//player.transform.localEulerAngles = new Vector3( 0, -90, 90 );
 				}
-				else if ( currOrientation == DeviceOrientation.PortraitUpsideDown.ToString() )
+				else if ( playerGoalOrientations[i] == "PortraitUpsideDown" )
 				{
 					animator.Play( "ButtUp" );
 					//player.transform.localEulerAngles = new Vector3( 180, -90, 90 );
 				}
-				else if ( currOrientation == DeviceOrientation.LandscapeLeft.ToString() )
+				else if ( playerGoalOrientations[i] == "LandscapeLeft" )
 				{
 					sprite.FlipX = true;
 					animator.Play( "Side" );
 					//player.transform.localEulerAngles = new Vector3( 90, 180, 0 );
 				}
-				else if ( currOrientation == DeviceOrientation.LandscapeRight.ToString() )
+				else if ( playerGoalOrientations[i] == "LandscapeRight" )
 				{
 					animator.Play( "Side" );
 					//player.transform.localEulerAngles = new Vector3( -90, 0, 0 );
 				}
 				
 				// Success particle
-				if( currOrientation != playerLastOrientations[i] )
+				if( currOrientation == playerGoalOrientations[i] && !playerGoalCompleted[i]  )
 				{
 					playerParticles[i].Play();
+					playerGoalCompleted[i] = true;
 				}
-				
-				playerLastOrientations[i] = currOrientation;
 			}
 		}
 	}
@@ -209,7 +366,6 @@ public class HHNetwork : MonoBehaviour {
 				if( !gameStarted )
 				{
 					playerOrientations[i] = orientation;
-					playerLastOrientations[i] = orientation;
 					playerIDs[i] = uniqueIdentifier;
 					playerGameObjects[i].SetActive(true);
 					playerAppearParticles[i].Play();

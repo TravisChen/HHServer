@@ -36,12 +36,12 @@ public class HHAudioManager : MonoBehaviour {
 									dance12 };
 									
 		channelA = gameObject.AddComponent<AudioSource>();
-		randomSong();
 	}
 	
-	void randomSong() {
+	public void randomSong() {
 								
 		int randomNumber = Random.Range(0,(music.Length - 1));
+		channelA.Stop();
 		channelA.clip = music[randomNumber];
 		channelA.Play();
 		

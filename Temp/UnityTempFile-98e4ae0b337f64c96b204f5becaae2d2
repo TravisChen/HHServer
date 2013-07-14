@@ -6,7 +6,7 @@
 -nowarn:BCW0016
 -nowarn:BCW0003
 -method:Main
--out:Temp/Assembly-UnityScript-Editor.dll
+-out:Temp/Assembly-UnityScript.dll
 -x-type-inference-rule-attribute:UnityEngineInternal.TypeInferenceRuleAttribute
 -define:UNITY_STANDALONE_OSX
 -define:ENABLE_MICROPHONE
@@ -35,11 +35,7 @@
 -define:UNITY_TEAM_LICENSE
 -r:'/Applications/Unity_4.1.2/Unity.app/Contents/Frameworks/Managed/UnityEngine.dll'
 -r:'/Applications/Unity_4.1.2/Unity.app/Contents/Frameworks/Managed/UnityEditor.dll'
--r:'Library/ScriptAssemblies/Assembly-CSharp.dll'
--r:'Library/ScriptAssemblies/Assembly-UnityScript.dll'
--r:'Assets/TK2DROOT/tk2d/Editor/tk2dExternal.dll'
--r:'Assets/TK2DROOT/tk2d/Editor/tk2dSkin.dll'
--r:'/Applications/Unity_4.1.2/Unity.app/Contents/Frameworks/Managed/UnityEditor.Graphs.dll'
 -i:UnityEditor
-'Assets/FX Mega Pack/Scripts/Editor/MaterialOverride.js'
-'Assets/FX Mega Pack/Scripts/Editor/ParticleScaler.js'
+'Assets/FX Mega Pack/Scripts/ParticleSpawner.js'
+'Assets/FX Mega Pack/Scripts/RandomRotate.js'
+'Assets/FX Mega Pack/Scripts/RotateY.js'

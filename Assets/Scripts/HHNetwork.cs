@@ -40,7 +40,7 @@ public class HHNetwork : MonoBehaviour {
 	private float restartTimer = 5.0f;
 	private float restartCountdown = 11.0f;
 	
-	private int minPlayers = 2;
+	private int minPlayers = 4;
 	private string[] playerIDs;
 	private string[] availableOrientations;
 	private string[] playerOrientations;

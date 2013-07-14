@@ -56,7 +56,7 @@ public class HHNetwork : MonoBehaviour {
 	{
 		playerIDs = new string[] { "", "", "", "" };
 		
-		availableOrientations = new string[] { "FaceUp", "FaceDown", "Portrait", "PortraitUpsideDown", "LandscapeLeft", "LandscapeRight" };
+		availableOrientations = new string[] { "FaceUp", "FaceDown", "Portrait", "PortraitUpsideDown", "LandscapeLeft", "Hug" };
 		playerOrientations = new string[] { "Portrait", "Portrait", "Portrait",  "Portrait" };
 		playerGoalOrientations = new string[] { "Portrait", "Portrait", "Portrait",  "Portrait" };
 		playerGoalCompleted = new bool[] { false, false, false, false };
@@ -152,9 +152,13 @@ public class HHNetwork : MonoBehaviour {
 						// Reset all players
 						for( int i = 0; i < playerGoalCompleted.Length; i++ )
 						{
-							if( !playerGoalCompleted[i] )
+							if( !playerGoalCompleted[i] && !playerFailed[i] )
 							{
 								playerFailed[i] = true;
+								if( playerIDs[i] != "" )
+								{
+									playerAppearParticles[i].Play();
+								}
 								playerGameObjects[i].SetActive( false );
 							}
 							CheckGameOver();
@@ -166,8 +170,12 @@ public class HHNetwork : MonoBehaviour {
 			}
 			else
 			{
+				if( startTimer >= 3.0f )
+				{
+					audio.randomSong();
+				}
 				getReadyMenu.SetActive( true );
-				audio.randomSong();
+				TurnOffNotPlaying();
 				startTimer -= Time.deltaTime;
 			}
 		}
@@ -247,7 +255,7 @@ public class HHNetwork : MonoBehaviour {
     
     	for( int i = 0; i < playerIDs.Length; i++ )
 		{
-			int randomOrientation = Random.Range( 0, availableOrientations.Length - 1 );
+			int randomOrientation = Random.Range( 0, availableOrientations.Length );
 			playerGoalOrientations[i] = availableOrientations[randomOrientation];
 		}
 			
@@ -311,15 +319,14 @@ public class HHNetwork : MonoBehaviour {
 					animator.Play( "ButtUp" );
 					//player.transform.localEulerAngles = new Vector3( 180, -90, 90 );
 				}
-				else if ( playerGoalOrientations[i] == "LandscapeLeft" )
+				else if ( playerGoalOrientations[i] == "LandscapeLeft" || playerGoalOrientations[i] == "LandscapeRight" )
 				{
-					sprite.FlipX = true;
 					animator.Play( "Side" );
-					//player.transform.localEulerAngles = new Vector3( 90, 180, 0 );
+					//player.transform.localEulerAngles = new Vector3( -90, 0, 0 );
 				}
-				else if ( playerGoalOrientations[i] == "LandscapeRight" )
+				else if ( playerGoalOrientations[i] == "Hug" )
 				{
-					animator.Play( "Side" );
+					animator.Play( "Hug" );
 					//player.transform.localEulerAngles = new Vector3( -90, 0, 0 );
 				}
 				
@@ -328,6 +335,26 @@ public class HHNetwork : MonoBehaviour {
 				{
 					playerParticles[i].Play();
 					playerGoalCompleted[i] = true;
+				}
+				
+				// LANDSCAPE HACK
+				if( playerGoalOrientations[i] == "LandscapeLeft" && !playerGoalCompleted[i] )
+				{
+					if( currOrientation == "LandscapeLeft" || currOrientation == "LandscapeRight" )
+					{
+						playerParticles[i].Play();
+						playerGoalCompleted[i] = true;						
+					}
+				} 
+				
+				// HUG HACK!
+				if( playerGoalOrientations[i] == "Hug" && !playerGoalCompleted[i] )
+				{
+					if( timer < 3.0 )
+					{
+						playerParticles[i].Play();
+						playerGoalCompleted[i] = true;
+					}
 				}
 			}
 		}
@@ -349,6 +376,16 @@ public class HHNetwork : MonoBehaviour {
 			}		
 		}
 		return true;
+	}
+	
+	void TurnOffNotPlaying() {
+		for( int i = 0; i < playerIDs.Length; i++ )
+		{
+			if( playerIDs[i] == "" )
+			{
+				playerGameObjects[i].SetActive( false );
+			}		
+		}
 	}
 
 	[RPC]

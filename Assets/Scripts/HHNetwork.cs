@@ -3,20 +3,30 @@ using System.Collections;
 
 public class HHNetwork : MonoBehaviour {
 
-	private Vector3 lastRotation;
 	public GameObject Player1;
 	public GameObject Player2;
+	
 	public ParticleSystem Player1SuccessParticle;
+	public ParticleSystem Player2SuccessParticle;
 	
 	public string[] playerIDs;
 	public string[] playerOrientations;
+	public string[] playerLastOrientations;
+	public ParticleSystem[] playerParticles;
 	public GameObject[] playerGameObjects;
 	
 	void Start()
 	{
 		playerIDs = new string[] { "", "" };
 		playerOrientations = new string[] { "Portrait", "Portrait" };
+		playerLastOrientations = new string[] { "Portrait", "Portrait" };
 		playerGameObjects = new GameObject[] { Player1, Player2 };
+		playerParticles = new ParticleSystem[] { Player1SuccessParticle, Player2SuccessParticle };
+		
+		for( int i = 0; i < playerGameObjects.Length; i++ )
+		{
+			playerGameObjects[i].SetActive(false);
+		}
 	}
 	
 	void Awake()
@@ -31,11 +41,6 @@ public class HHNetwork : MonoBehaviour {
    	void OnPlayerConnected() {
         Debug.Log("Player Connected");
     }
-
-	void OnLevelWasLoaded ()
-	{
-		lastRotation = Player1.transform.localEulerAngles;
-	}
 	
 	// Update is called once per frame
 	void Update () {
@@ -73,14 +78,14 @@ public class HHNetwork : MonoBehaviour {
 				}
 				
 				// Success particle
-				if( player.transform.localEulerAngles != lastRotation )
+				if( currOrientation != playerLastOrientations[i] )
 				{
-					Player1SuccessParticle.Play();
+					playerParticles[i].Play();
 				}
+				
+				playerLastOrientations[i] = currOrientation;
 			}	
 		}
-		
-		lastRotation = Player1.transform.localEulerAngles;
 	}
 	
 	[RPC]
@@ -97,6 +102,8 @@ public class HHNetwork : MonoBehaviour {
 			{
 				playerOrientations[i] = orientation;
 				playerIDs[i] = uniqueIdentifier;
+				playerGameObjects[i].SetActive(true);
+				return;
 			}
 		}		    	
     }

@@ -18,7 +18,13 @@ public class HHAudioManager : MonoBehaviour {
 	public AudioClip dance11;
 	public AudioClip dance12;
 	
+	public AudioClip yay;
+	public AudioClip yayay;
+	public AudioClip bust;
+	public AudioClip whistle;
+	
 	private AudioSource channelA;
+	private AudioSource channelB;
 	
 	// Use this for initialization
 	void Start () {
@@ -36,6 +42,7 @@ public class HHAudioManager : MonoBehaviour {
 									dance12 };
 									
 		channelA = gameObject.AddComponent<AudioSource>();
+		channelB = gameObject.AddComponent<AudioSource>();
 	}
 	
 	public void randomSong() {
@@ -45,6 +52,26 @@ public class HHAudioManager : MonoBehaviour {
 		channelA.clip = music[randomNumber];
 		channelA.Play();
 		
+	}
+	
+	public void playYay() {
+		channelB.clip = yay;
+		channelB.Play();
+	}
+	
+	public void playYayay() {
+		channelB.clip = yayay;
+		channelB.Play();	
+	}
+	
+	public void playBust() {
+		channelB.clip = bust;
+		channelB.Play();	
+	}
+	
+	public void playWhistle() {
+		channelB.clip = whistle;
+		channelB.Play();
 	}
 	
 	// Update is called once per frame

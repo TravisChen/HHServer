@@ -33,6 +33,7 @@ public class HHNetwork : MonoBehaviour {
 	public ParticleSystem TimerParticle;
 	public ParticleSystem TimerParticleEnd;
 	private bool gameStarted = false;
+	private bool controlsSet = false;
 	private bool gameOver = false;
 	private float timerMax = 11.0f;
 	private float timer = 0.0f;
@@ -56,7 +57,7 @@ public class HHNetwork : MonoBehaviour {
 	{
 		playerIDs = new string[] { "", "", "", "" };
 		
-		availableOrientations = new string[] { "FaceUp", "FaceDown", "Portrait", "PortraitUpsideDown", "LandscapeLeft", "Hug" };
+		availableOrientations = new string[] { "FaceUp", "FaceDown", "Portrait", "PortraitUpsideDown", "LandscapeLeft", "Hug", "Think" };
 		playerOrientations = new string[] { "Portrait", "Portrait", "Portrait",  "Portrait" };
 		playerGoalOrientations = new string[] { "Portrait", "Portrait", "Portrait",  "Portrait" };
 		playerGoalCompleted = new bool[] { false, false, false, false };
@@ -85,7 +86,6 @@ public class HHNetwork : MonoBehaviour {
 	
 	void ResetGame()
 	{
-		playerIDs = new string[] { "", "", "", "" };
 		playerOrientations = new string[] { "Portrait", "Portrait", "Portrait",  "Portrait" };
 		playerGoalOrientations = new string[] { "Portrait", "Portrait", "Portrait",  "Portrait" };
 		playerGoalCompleted = new bool[] { false, false, false, false };
@@ -149,6 +149,8 @@ public class HHNetwork : MonoBehaviour {
 						TimerParticleEnd.Play();
 						timer = timerMax;
 						
+						audio.playWhistle();
+						
 						// Reset all players
 						for( int i = 0; i < playerGoalCompleted.Length; i++ )
 						{
@@ -158,8 +160,10 @@ public class HHNetwork : MonoBehaviour {
 								if( playerIDs[i] != "" )
 								{
 									playerAppearParticles[i].Play();
+									audio.playBust();
 								}
 								playerGameObjects[i].SetActive( false );
+
 							}
 							CheckGameOver();
 							playerGoalCompleted[i] = false;
@@ -256,9 +260,20 @@ public class HHNetwork : MonoBehaviour {
     	for( int i = 0; i < playerIDs.Length; i++ )
 		{
 			int randomOrientation = Random.Range( 0, availableOrientations.Length );
-			playerGoalOrientations[i] = availableOrientations[randomOrientation];
-		}
+			string randomOrientationString = availableOrientations[randomOrientation];
 			
+			string currOrientation = playerOrientations[i];
+			if( randomOrientationString == currOrientation || randomOrientationString == playerGoalOrientations[i] )
+			{
+				SetGoalOrientations();
+				return;
+			}
+			else
+			{
+				playerGoalOrientations[i] = randomOrientationString;
+			}
+
+		}		
     }
 	
 	void UpdateEffect() {
@@ -329,12 +344,19 @@ public class HHNetwork : MonoBehaviour {
 					animator.Play( "Hug" );
 					//player.transform.localEulerAngles = new Vector3( -90, 0, 0 );
 				}
+				else if ( playerGoalOrientations[i] == "Think" )
+				{
+					animator.Play( "Think" );
+					//player.transform.localEulerAngles = new Vector3( -90, 0, 0 );
+				}
+				
 				
 				// Success particle
 				if( currOrientation == playerGoalOrientations[i] && !playerGoalCompleted[i]  )
 				{
 					playerParticles[i].Play();
 					playerGoalCompleted[i] = true;
+					audio.playYay();
 				}
 				
 				// LANDSCAPE HACK
@@ -343,7 +365,8 @@ public class HHNetwork : MonoBehaviour {
 					if( currOrientation == "LandscapeLeft" || currOrientation == "LandscapeRight" )
 					{
 						playerParticles[i].Play();
-						playerGoalCompleted[i] = true;						
+						playerGoalCompleted[i] = true;		
+						audio.playYay();				
 					}
 				} 
 				
@@ -354,6 +377,18 @@ public class HHNetwork : MonoBehaviour {
 					{
 						playerParticles[i].Play();
 						playerGoalCompleted[i] = true;
+						audio.playYay();
+					}
+				}
+				
+				// HUG HACK!
+				if( playerGoalOrientations[i] == "Think" && !playerGoalCompleted[i] )
+				{
+					if( timer < 5.0 )
+					{
+						playerParticles[i].Play();
+						playerGoalCompleted[i] = true;
+						audio.playYay();
 					}
 				}
 			}
@@ -406,6 +441,7 @@ public class HHNetwork : MonoBehaviour {
 					playerIDs[i] = uniqueIdentifier;
 					playerGameObjects[i].SetActive(true);
 					playerAppearParticles[i].Play();
+					audio.playYayay();
 					
 					GameObject player = playerGameObjects[i];
 					MeshRenderer renderer = player.transform.Find( "AnimatedSprite" ).GetComponent<MeshRenderer>();

@@ -5,33 +5,56 @@ public class HHNetwork : MonoBehaviour {
 
 	public GameObject Player1;
 	public GameObject Player2;
+	public GameObject Player3;
+	public GameObject Player4;
 	
 	public ParticleSystem Player1SuccessParticle;
 	public ParticleSystem Player2SuccessParticle;
+	public ParticleSystem Player3SuccessParticle;
+	public ParticleSystem Player4SuccessParticle;
 	
 	public ParticleSystem Player1AppearParticle;
 	public ParticleSystem Player2AppearParticle;
+	public ParticleSystem Player3AppearParticle;
+	public ParticleSystem Player4AppearParticle;
 	
-	public string[] playerIDs;
-	public string[] playerOrientations;
-	public string[] playerLastOrientations;
-	public ParticleSystem[] playerParticles;
-	public ParticleSystem[] playerAppearParticles;
-	public GameObject[] playerGameObjects;
+	public Material materialNormal;
+	public Material materialDark;
+
+	// Timer
+	public GameObject TimerLabel;
+	private float timerMax = 11.0f;
+	private float timer = 0.0f;
+	public ParticleSystem TimerParticle;
+	public ParticleSystem TimerParticleEnd;
+	
+	private int minPlayers = 1;
+	private string[] playerIDs;
+	private string[] playerOrientations;
+	private string[] playerLastOrientations;
+	private ParticleSystem[] playerParticles;
+	private ParticleSystem[] playerAppearParticles;
+	private GameObject[] playerGameObjects;
 	
 	void Start()
 	{
-		playerIDs = new string[] { "", "" };
-		playerOrientations = new string[] { "Portrait", "Portrait" };
-		playerLastOrientations = new string[] { "Portrait", "Portrait" };
-		playerGameObjects = new GameObject[] { Player1, Player2 };
-		playerParticles = new ParticleSystem[] { Player1SuccessParticle, Player2SuccessParticle };
-		playerAppearParticles = new ParticleSystem[] { Player1AppearParticle, Player2AppearParticle };
+		playerIDs = new string[] { "", "", "", "" };
+		playerOrientations = new string[] { "Portrait", "Portrait", "Portrait",  "Portrait" };
+		playerLastOrientations = new string[] { "Portrait", "Portrait", "Portrait", "Portrait" };
+		playerGameObjects = new GameObject[] { Player1, Player2, Player3, Player4 };
+		playerParticles = new ParticleSystem[] { Player1SuccessParticle, Player2SuccessParticle, Player3SuccessParticle, Player4SuccessParticle };
+		playerAppearParticles = new ParticleSystem[] { Player1AppearParticle, Player2AppearParticle, Player3AppearParticle, Player4AppearParticle };
+    
+		for( int i = 0; i < playerGameObjects.Length; i++ )
+		{
+			GameObject player = playerGameObjects[i];
+			MeshRenderer renderer = player.transform.Find( "AnimatedSprite" ).GetComponent<MeshRenderer>();
+			renderer.material = materialDark;
+		}
 		
-//		for( int i = 0; i < playerGameObjects.Length; i++ )
-//		{
-//			playerGameObjects[i].SetActive(false);
-//		}
+		// Timer
+		timer = timerMax;
+		TimerParticle.Play();
 	}
 	
 	void Awake()
@@ -43,18 +66,45 @@ public class HHNetwork : MonoBehaviour {
         Debug.Log("Server initialized and ready");
     }
     
-   	void OnPlayerConnected() {
-        Debug.Log("Player Connected");
+    void UpdateTimer() {
+    	if( GameReady() )
+    	{
+    		TimerLabel.SetActive( true );
+    		TimerParticle.gameObject.SetActive( true );
+	    	tk2dTextMesh timerText = TimerLabel.GetComponent<tk2dTextMesh>();
+			if( timerText )
+			{
+				timer -= Time.deltaTime;
+				timerText.text = "" + (int)timer + "";
+				timerText.Commit();
+				
+				if( timer <= 1 )
+				{
+					TimerParticleEnd.Play();
+					timer = timerMax;
+				}
+			}
+		}
+		else
+		{
+			TimerLabel.SetActive( false );
+			TimerParticle.gameObject.SetActive( false );
+		}
     }
 	
 	// Update is called once per frame
 	void Update () {
 	
+		// Timer
+		UpdateTimer();
+		
 		for( int i = 0; i < playerIDs.Length; i++ )
 		{	
-
 			// Player
 			GameObject player = playerGameObjects[i];
+			string currOrientation = playerOrientations[i];
+			tk2dSprite sprite = player.transform.Find( "AnimatedSprite" ).GetComponent<tk2dSprite>();
+			tk2dSpriteAnimator animator = player.transform.Find( "AnimatedSprite" ).GetComponent<tk2dSpriteAnimator>();
 				
 			// Set instruction text
 			tk2dTextMesh instruction = player.transform.Find( "Instruction" ).GetComponent<tk2dTextMesh>();
@@ -63,10 +113,7 @@ public class HHNetwork : MonoBehaviour {
 					
 			if( playerIDs[i] != "" )
 			{		
-				string currOrientation = playerOrientations[i];
-				tk2dSprite sprite = player.transform.Find( "AnimatedSprite" ).GetComponent<tk2dSprite>();
-				tk2dSpriteAnimator animator = player.transform.Find( "AnimatedSprite" ).GetComponent<tk2dSpriteAnimator>();
-				
+
 				sprite.FlipX = false;
 				
 				if( currOrientation == DeviceOrientation.FaceUp.ToString() )
@@ -108,10 +155,28 @@ public class HHNetwork : MonoBehaviour {
 				}
 				
 				playerLastOrientations[i] = currOrientation;
-			}	
+			}
 		}
 	}
 	
+	bool GameReady() {
+		for( int i = 0; i < playerIDs.Length; i++ )
+		{
+			if( playerIDs[i] == "" )
+			{
+				if( i >= minPlayers )
+				{
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+			}		
+		}
+		return true;
+	}
+
 	[RPC]
     void SetOrientation( string orientation, string uniqueIdentifier ) {
   
@@ -129,6 +194,10 @@ public class HHNetwork : MonoBehaviour {
 				playerIDs[i] = uniqueIdentifier;
 				playerGameObjects[i].SetActive(true);
 				playerAppearParticles[i].Play();
+				
+				GameObject player = playerGameObjects[i];
+				MeshRenderer renderer = player.transform.Find( "AnimatedSprite" ).GetComponent<MeshRenderer>();
+				renderer.material = materialNormal;
 				return;
 			}
 		}		    	

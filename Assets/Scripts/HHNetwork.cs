@@ -56,29 +56,39 @@ public class HHNetwork : MonoBehaviour {
 			{
 				GameObject player = playerGameObjects[i];
 				string currOrientation = playerOrientations[i];
+				tk2dSprite sprite = player.transform.Find( "AnimatedSprite" ).GetComponent<tk2dSprite>();
+				tk2dSpriteAnimator animator = player.transform.Find( "AnimatedSprite" ).GetComponent<tk2dSpriteAnimator>();
+				sprite.FlipX = false;
 				
 				if( currOrientation == DeviceOrientation.FaceUp.ToString() )
 				{
+					animator.Play( "Portrait" );
 					//player.transform.localEulerAngles = new Vector3( 0, 0, 0 );
 				}
 				else if( currOrientation == DeviceOrientation.FaceDown.ToString() )
 				{
+					animator.Play( "Portrait" );
 					//player.transform.localEulerAngles = new Vector3( 0, -180, -180 );
 				}
 				else if ( currOrientation== DeviceOrientation.Portrait.ToString() )
 				{
+					animator.Play( "Portrait" );	
 					//player.transform.localEulerAngles = new Vector3( 0, -90, 90 );
 				}
 				else if ( currOrientation == DeviceOrientation.PortraitUpsideDown.ToString() )
 				{
+					animator.Play( "Portrait" );
 					//player.transform.localEulerAngles = new Vector3( 180, -90, 90 );
 				}
 				else if ( currOrientation == DeviceOrientation.LandscapeLeft.ToString() )
 				{
+					sprite.FlipX = true;
+					animator.Play( "Side" );
 					//player.transform.localEulerAngles = new Vector3( 90, 180, 0 );
 				}
 				else if ( currOrientation == DeviceOrientation.LandscapeRight.ToString() )
 				{
+					animator.Play( "Side" );
 					//player.transform.localEulerAngles = new Vector3( -90, 0, 0 );
 				}
 				

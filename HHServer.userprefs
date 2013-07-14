@@ -1,9 +1,11 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/HHNetwork.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="../HHClient/Assets/HHNetwork.cs">
     <Files>
-      <File FileName="Assets/Scripts/HHNetwork.cs" Line="58" Column="5" />
       <File FileName="Assets/Scripts/HHGameLoop.cs" Line="39" Column="1" />
+      <File FileName="Assets/Scripts/HHAudioManager.cs" Line="38" Column="53" />
+      <File FileName="Assets/Scripts/HHNetwork.cs" Line="43" Column="28" />
+      <File FileName="../HHClient/Assets/HHNetwork.cs" Line="1" Column="19" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

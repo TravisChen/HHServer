@@ -71,7 +71,7 @@ public class HHNetwork : MonoBehaviour {
 				
 				if( currOrientation == DeviceOrientation.FaceUp.ToString() )
 				{
-					animator.Play( "Portrait" );
+					animator.Play( "FaceUp" );
 					//player.transform.localEulerAngles = new Vector3( 0, 0, 0 );
 				}
 				else if( currOrientation == DeviceOrientation.FaceDown.ToString() )
@@ -86,7 +86,7 @@ public class HHNetwork : MonoBehaviour {
 				}
 				else if ( currOrientation == DeviceOrientation.PortraitUpsideDown.ToString() )
 				{
-					animator.Play( "Portrait" );
+					animator.Play( "ButtUp" );
 					//player.transform.localEulerAngles = new Vector3( 180, -90, 90 );
 				}
 				else if ( currOrientation == DeviceOrientation.LandscapeLeft.ToString() )

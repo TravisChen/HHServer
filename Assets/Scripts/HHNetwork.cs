@@ -9,10 +9,14 @@ public class HHNetwork : MonoBehaviour {
 	public ParticleSystem Player1SuccessParticle;
 	public ParticleSystem Player2SuccessParticle;
 	
+	public ParticleSystem Player1AppearParticle;
+	public ParticleSystem Player2AppearParticle;
+	
 	public string[] playerIDs;
 	public string[] playerOrientations;
 	public string[] playerLastOrientations;
 	public ParticleSystem[] playerParticles;
+	public ParticleSystem[] playerAppearParticles;
 	public GameObject[] playerGameObjects;
 	
 	void Start()
@@ -22,6 +26,7 @@ public class HHNetwork : MonoBehaviour {
 		playerLastOrientations = new string[] { "Portrait", "Portrait" };
 		playerGameObjects = new GameObject[] { Player1, Player2 };
 		playerParticles = new ParticleSystem[] { Player1SuccessParticle, Player2SuccessParticle };
+		playerAppearParticles = new ParticleSystem[] { Player1AppearParticle, Player2AppearParticle };
 		
 		for( int i = 0; i < playerGameObjects.Length; i++ )
 		{
@@ -54,27 +59,27 @@ public class HHNetwork : MonoBehaviour {
 				
 				if( currOrientation == DeviceOrientation.FaceUp.ToString() )
 				{
-					player.transform.localEulerAngles = new Vector3( 0, 0, 0 );
+					//player.transform.localEulerAngles = new Vector3( 0, 0, 0 );
 				}
 				else if( currOrientation == DeviceOrientation.FaceDown.ToString() )
 				{
-					player.transform.localEulerAngles = new Vector3( 0, -180, -180 );
+					//player.transform.localEulerAngles = new Vector3( 0, -180, -180 );
 				}
 				else if ( currOrientation== DeviceOrientation.Portrait.ToString() )
 				{
-					player.transform.localEulerAngles = new Vector3( 0, -90, 90 );
+					//player.transform.localEulerAngles = new Vector3( 0, -90, 90 );
 				}
 				else if ( currOrientation == DeviceOrientation.PortraitUpsideDown.ToString() )
 				{
-					player.transform.localEulerAngles = new Vector3( 180, -90, 90 );
+					//player.transform.localEulerAngles = new Vector3( 180, -90, 90 );
 				}
 				else if ( currOrientation == DeviceOrientation.LandscapeLeft.ToString() )
 				{
-					player.transform.localEulerAngles = new Vector3( 90, 180, 0 );
+					//player.transform.localEulerAngles = new Vector3( 90, 180, 0 );
 				}
 				else if ( currOrientation == DeviceOrientation.LandscapeRight.ToString() )
 				{
-					player.transform.localEulerAngles = new Vector3( -90, 0, 0 );
+					//player.transform.localEulerAngles = new Vector3( -90, 0, 0 );
 				}
 				
 				// Success particle
@@ -101,8 +106,10 @@ public class HHNetwork : MonoBehaviour {
 			else if( playerIDs[i] == "" )
 			{
 				playerOrientations[i] = orientation;
+				playerLastOrientations[i] = orientation;
 				playerIDs[i] = uniqueIdentifier;
 				playerGameObjects[i].SetActive(true);
+				playerAppearParticles[i].Play();
 				return;
 			}
 		}		    	

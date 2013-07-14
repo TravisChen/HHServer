@@ -28,10 +28,10 @@ public class HHNetwork : MonoBehaviour {
 		playerParticles = new ParticleSystem[] { Player1SuccessParticle, Player2SuccessParticle };
 		playerAppearParticles = new ParticleSystem[] { Player1AppearParticle, Player2AppearParticle };
 		
-		for( int i = 0; i < playerGameObjects.Length; i++ )
-		{
-			playerGameObjects[i].SetActive(false);
-		}
+//		for( int i = 0; i < playerGameObjects.Length; i++ )
+//		{
+//			playerGameObjects[i].SetActive(false);
+//		}
 	}
 	
 	void Awake()
@@ -51,13 +51,22 @@ public class HHNetwork : MonoBehaviour {
 	void Update () {
 	
 		for( int i = 0; i < playerIDs.Length; i++ )
-		{		
+		{	
+
+			// Player
+			GameObject player = playerGameObjects[i];
+				
+			// Set instruction text
+			tk2dTextMesh instruction = player.transform.Find( "Instruction" ).GetComponent<tk2dTextMesh>();
+			instruction.text = "TEST";
+			instruction.Commit();
+					
 			if( playerIDs[i] != "" )
-			{
-				GameObject player = playerGameObjects[i];
+			{		
 				string currOrientation = playerOrientations[i];
 				tk2dSprite sprite = player.transform.Find( "AnimatedSprite" ).GetComponent<tk2dSprite>();
 				tk2dSpriteAnimator animator = player.transform.Find( "AnimatedSprite" ).GetComponent<tk2dSpriteAnimator>();
+				
 				sprite.FlipX = false;
 				
 				if( currOrientation == DeviceOrientation.FaceUp.ToString() )
@@ -67,7 +76,7 @@ public class HHNetwork : MonoBehaviour {
 				}
 				else if( currOrientation == DeviceOrientation.FaceDown.ToString() )
 				{
-					animator.Play( "Portrait" );
+					animator.Play( "FaceDown" );
 					//player.transform.localEulerAngles = new Vector3( 0, -180, -180 );
 				}
 				else if ( currOrientation== DeviceOrientation.Portrait.ToString() )

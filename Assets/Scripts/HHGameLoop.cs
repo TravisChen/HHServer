@@ -4,6 +4,7 @@ using System.Collections;
 public class HHGameLoop : MonoBehaviour {
 
 	public GameObject TimerLabel;
+	
 	private float timerMax = 11.0f;
 	private float timer = 0.0f;
 

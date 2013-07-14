@@ -3,6 +3,8 @@ using System.Collections;
 
 public class HHNetwork : MonoBehaviour {
 
+	public Camera camera;
+
 	public GameObject Player1;
 	public GameObject Player2;
 	public GameObject Player3;
@@ -97,11 +99,20 @@ public class HHNetwork : MonoBehaviour {
 		
     }
 	
+	void UpdateEffect() {
+		CC_AnalogTV tvEffect = camera.GetComponent<CC_AnalogTV>();
+		tvEffect.noiseIntensity = (Random.value * 0.1f) + 0.05f;
+		tvEffect.scanlinesCount = Random.Range(250,300);
+	}
+	
 	// Update is called once per frame
 	void Update () {
 	
 		// Timer
 		UpdateTimer();
+		
+		// Effect
+		UpdateEffect();
 		
 		for( int i = 0; i < playerIDs.Length; i++ )
 		{	
